@@ -5,9 +5,13 @@ set -e
 
 echo "🔧 Setting up ESLint for Nuxt project with Vue 3, TypeScript, accessibility, and formatting best practices..."
 
-# Install project deps
-echo "📦 Installing all project dependencies..."
-npm i
+# Install project deps only if node_modules doesn't exist
+if [[ ! -d "node_modules" ]]; then
+  echo "📦 Installing project dependencies..."
+  npm install
+else
+  echo "✅ node_modules already exists, skipping npm install."
+fi
 
 # Install Nuxt ESLint integration
 echo "📦 Installing @nuxt/eslint..."
@@ -70,8 +74,9 @@ EOF
 echo "📝 Updating eslint.config.mjs..."
 cat > eslint.config.mjs <<'EOF'
 import antfu from "@antfu/eslint-config";
-import withNuxt from "./.nuxt/eslint.config.mjs";
 import vueAccessibility from "eslint-plugin-vuejs-accessibility";
+
+import withNuxt from "./.nuxt/eslint.config.mjs";
 
 export default withNuxt(
   antfu(
@@ -106,10 +111,16 @@ export default withNuxt(
 
         // Code quality
         "perfectionist/sort-imports": ["error", { tsconfigRootDir: "." }],
-        "unicorn/filename-case": ["error", { case: "pascalCase", ignore: ["README.md"] }]
-      }
-    }
-  )
+        "unicorn/filename-case": ["error", {
+          cases: {
+            kebabCase: true,
+            pascalCase: true,
+          },
+          ignore: ["README.md"],
+        }],
+      },
+    },
+  ),
 );
 EOF
 

@@ -5,6 +5,10 @@ set -e
 
 echo "🔧 Setting up ESLint for Nuxt project with Vue 3, TypeScript, accessibility, and formatting best practices..."
 
+# Install project deps
+echo "📦 Installing all project dependencies..."
+npm i
+
 # Install Nuxt ESLint integration
 echo "📦 Installing @nuxt/eslint..."
 npx nuxi@latest module add eslint
@@ -109,7 +113,49 @@ export default withNuxt(
 );
 EOF
 
-echo "✅ ESLint setup complete with full Vue/Nuxt best practices and no plugin conflicts!"
+CONFIG_FILE="nuxt.config.ts"
+
+if [[ -f "$CONFIG_FILE" ]]; then
+  echo "📝 Injecting ESLint config into $CONFIG_FILE..."
+
+  # Only inject if eslint block does not exist
+  if ! grep -q "eslint:" "$CONFIG_FILE"; then
+    awk '
+    BEGIN { added=0 }
+    {
+      # Track if this is the last line of the object (before final })
+      if ($0 ~ /^\}[ \t]*\)[ \t]*$/ && added==0) {
+        # Insert comma if previous line does not end with comma
+        if (prev !~ /,$/) {
+          print prev ","
+        } else {
+          print prev
+        }
+        # Inject ESLint block
+        print "  eslint: {"
+        print "    config: {"
+        print "      standalone: false"
+        print "    }"
+        print "  }"
+        print $0
+        added=1
+      } else {
+        if (NR>1) print prev
+        prev=$0
+      }
+    }
+    END { if (!added) print prev }
+    ' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
+
+    echo "✅ ESLint block injected correctly inside defineNuxtConfig."
+  else
+    echo "ℹ️ ESLint block already exists in $CONFIG_FILE, skipping."
+  fi
+else
+  echo "⚠️ $CONFIG_FILE not found, skipping ESLint block injection."
+fi
+
+
 
 # Ask before deleting script
 SCRIPT_NAME="setup-eslint.sh"
@@ -130,3 +176,6 @@ echo "ℹ️  For WebStorm users:
 2. Preferences → Tools → Actions on Save → Run eslint --fix.
 3. Disable Prettier if enabled.
 "
+
+# Additional informations
+echo "ℹ️  To make configuration work you have to startup your project so Nuxt will handle eslint module properly"

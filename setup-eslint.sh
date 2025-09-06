@@ -112,7 +112,7 @@ EOF
 echo "✅ ESLint setup complete with full Vue/Nuxt best practices and no plugin conflicts!"
 
 # Ask before deleting script
-SCRIPT_NAME="setup.sh"
+SCRIPT_NAME="setup-eslint.sh"
 if [[ -f "$SCRIPT_NAME" ]]; then
   echo -n "🗑️  Do you want to remove $SCRIPT_NAME? [y/N]: "
   read -r confirm

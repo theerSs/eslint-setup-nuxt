@@ -91,10 +91,8 @@ export default withNuxt(
         quotes: "double",
       },
     },
+     ...vueAccessibility.configs["flat/recommended"],
     {
-      plugins: {
-        "vuejs-accessibility": vueAccessibility,
-      },
       rules: {
         // Vue rules
         "vue/max-attributes-per-line": ["error", { singleline: 2, multiline: 1 }],
